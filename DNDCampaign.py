@@ -53,15 +53,15 @@ todo_icon = 'images/icons/to-do.png'
 people_icon = 'images/icons/users-alt.png'
 home_icon = 'images/icons/home.png'
 sections = [
-    {"title": "Story", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined", "hasIndex": "false"},
-    {"title": "Mechanics", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined", "hasIndex": "false"},
-    {"title": "Maps", "icon": "images/icons/to-do.png", "pages": 1, "background": "hex", "hasIndex": "true"},
-    {"title": "Encounters", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined", "hasIndex": "false"},
-    {"title": "Friendly NPC's", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined",
-     "hasIndex": "false"},
-    {"title": "Enemy NPC's", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined", "hasIndex": "false"},
-    {"title": "Additional Sections", "icon": "images/icons/to-do.png", "pages": 1, "background": "lined",
-     "hasIndex": "false"}
+    {"title": "Story", "icon": "images/icons/story.png", "pages": 3, "background": "lined", "hasIndex": "false"},
+    {"title": "Mechanics", "icon": "images/icons/mechanics.png", "pages": 3, "background": "lined", "hasIndex": "false"},
+    {"title": "Maps", "icon": "images/icons/maps.png", "pages": 5, "background": "hex", "hasIndex": "true"},
+    {"title": "Encounters", "icon": "images/icons/encounters.png", "pages": 5, "background": "lined", "hasIndex": "true"},
+    {"title": "Friendly NPC's", "icon": "images/icons/npcs.png", "pages": 15, "background": "lined",
+     "hasIndex": "true"},
+    {"title": "Enemy NPC's", "icon": "images/icons/enemies.png", "pages": 15, "background": "lined", "hasIndex": "true"},
+    {"title": "Additional Sections", "icon": "images/icons/additional_topics.png", "pages": 10, "background": "lined",
+     "hasIndex": "true"}
 ]
 
 # Add a cover image on the first page
@@ -138,7 +138,7 @@ def add_toolbar():
     # Add navigation icons at the top-right corner, centered in the header
     icon_nav_x = 200 - len(sections * icon_size)
     for section in sections:
-        pdf.image(home_icon, x=icon_nav_x, y=icon_nav_y, w=icon_size, h=icon_size, link=section_links[section["title"]])
+        pdf.image(section["icon"], x=icon_nav_x, y=icon_nav_y, w=icon_size, h=icon_size, link=section_links[section["title"]])
         icon_nav_x = icon_nav_x + icon_size
 
 
@@ -163,11 +163,16 @@ projects_per_page = int(available_height // (project_box_height + 5)) - 1  # Cor
 for section in sections:
     pdf.current_title = section["title"]
     pdf.add_page()
+    add_toolbar()
     pdf.set_link(section_links[section["title"]])
     #Add the List page for this section
     item_links = []
     if (section["hasIndex"] == "true"):
-        for i in range(1, projects_per_page + 1):
+
+        #for i in range(1, projects_per_page + 1):
+        i= 0;#index of box on page
+        for p in range(section["pages"]):
+            i = i + 1
             y_position = margin_top + ((i) * (project_box_height + 5))
             pdf.set_xy(10, y_position)
 
@@ -178,16 +183,21 @@ for section in sections:
             # Create link points for Notes, To Do, and People
             item_link = pdf.add_link()
 
-            # Add clickable icons for Notes, To Do, and People
+            # Add clickable icons for link to page
             pdf.image(section["icon"], x=project_box_width + (1 * 15), y=y_position, w=icon_size, h=icon_size,
                       link=item_link)
             item_links.append(item_link)
+            if i >= projects_per_page:
+                pdf.add_page()
+                add_toolbar()
+                i = 0
 
     for p in range(section["pages"]):
         pdf.add_page()
+        add_toolbar()
         if section["hasIndex"] == "true":
             pdf.set_link(item_links[p])
-        add_toolbar()
+
         match section["background"]:
             case "lined":
                 add_lined_page()
