@@ -1,4 +1,5 @@
 from fpdf import FPDF
+
 import math
 
 
@@ -23,6 +24,70 @@ class PDF(FPDF):
         self.set_font(self.font_family, "I", 8)  # Use configurable font for footer
         self.set_text_color(128)
         self.cell(0, 10, f'Page {self.page_no()}', 0, 0, 'C')
+    def add_character_sheet(self):
+        # Table 1: Race, Armour Class, Speed, HP
+        self.add_table(["Race", "Armour Class", "Speed", "HP"], ['', '', '', ''])
+
+        # Stats: Str, Dex, Con, Int, Wis, Cha
+        self.add_stats_table(["Str", "Dex", "Con", "Int", "Wis", "Cha"])
+
+        # Free text area for Equipment
+        self.add_textbox("Equipment")
+
+        # Free text area for Actions
+        self.add_textbox("Actions")
+
+        # Two column table for Saving, Skills, Resist, Senses, Language
+        self.add_two_column_table(["Saving", "Skills", "Resist", "Senses", "Language"])
+
+        # Free text area for Traits
+        self.add_textbox("Traits")
+
+    def add_table(self, headers, row_data):
+        self.set_font('Arial', 'B', 10)
+        col_widths = [self.w / 4 - 2] * 4  # Same width for all tables, full width
+
+        # Adding headers
+        for i in range(len(headers)):
+            self.cell(col_widths[i], 10, headers[i], 1, 0, 'C')
+        self.ln()
+
+        # Adding row for writing
+        self.set_font('Arial', '', 10)
+        for i in range(len(row_data)):
+            self.cell(col_widths[i], 10, row_data[i], 1, 0, 'C')
+        self.ln()
+
+    def add_stats_table(self, stats):
+        self.set_font('Arial', 'B', 10)
+        col_widths = [self.w / 6 - 2] * 6  # Ensuring the width is uniform with other tables
+
+        # Adding stats headers
+        for i in range(len(stats)):
+            self.cell(col_widths[i], 10, stats[i], 1, 0, 'C')
+        self.ln()
+
+        # Adding row for writing
+        self.set_font('Arial', '', 10)
+        for _ in range(len(stats)):
+            self.cell(col_widths[0], 10, '', 1, 0, 'C')
+        self.ln()
+
+    def add_textbox(self, title, height=40):
+        self.set_font('Arial', 'B', 10)
+        self.cell(0, 10, title, ln=True)
+
+        # Adding a multiline text box with the full page width
+        self.cell(0, height, '', border=1, ln=True)
+
+    def add_two_column_table(self, labels, rows=5):
+        self.set_font('Arial', 'B', 10)
+        col_widths = [self.w / 2 - 2, self.w / 2 - 2]  # Ensuring same width as other tables
+
+        for i in range(rows):
+            self.cell(col_widths[0], 10, labels[i], 1, 0, 'L')
+            self.cell(col_widths[1], 10, '', 1, 0, 'C')
+            self.ln()
 
 
 # Create PDF instance with configurable font (default: Helvetica)
@@ -53,15 +118,15 @@ todo_icon = 'images/icons/to-do.png'
 people_icon = 'images/icons/users-alt.png'
 home_icon = 'images/icons/home.png'
 sections = [
-    {"title": "Story", "icon": "images/icons/story.png", "pages": 3, "background": "lined", "hasIndex": "false"},
-    {"title": "Mechanics", "icon": "images/icons/mechanics.png", "pages": 3, "background": "lined", "hasIndex": "false"},
-    {"title": "Maps", "icon": "images/icons/maps.png", "pages": 5, "background": "hex", "hasIndex": "true"},
-    {"title": "Encounters", "icon": "images/icons/encounters.png", "pages": 5, "background": "lined", "hasIndex": "true"},
+    {"title": "Story", "icon": "images/icons/story.png", "pages": 3, "background": "lined", "hasIndex": "false","hasCharacterSheet":"false"},
+    {"title": "Mechanics", "icon": "images/icons/mechanics.png", "pages": 3, "background": "lined", "hasIndex": "false","hasCharacterSheet":"false"},
+    {"title": "Maps", "icon": "images/icons/maps.png", "pages": 5, "background": "hex", "hasIndex": "true","hasCharacterSheet":"false"},
+    {"title": "Encounters", "icon": "images/icons/encounters.png", "pages": 5, "background": "lined", "hasIndex": "true","hasCharacterSheet":"false"},
     {"title": "Friendly NPC's", "icon": "images/icons/npcs.png", "pages": 15, "background": "lined",
-     "hasIndex": "true"},
-    {"title": "Enemy NPC's", "icon": "images/icons/enemies.png", "pages": 15, "background": "lined", "hasIndex": "true"},
+     "hasIndex": "true","hasCharacterSheet":"true"},
+    {"title": "Enemy NPC's", "icon": "images/icons/enemies.png", "pages": 15, "background": "lined", "hasIndex": "true","hasCharacterSheet":"true"},
     {"title": "Additional Sections", "icon": "images/icons/additional_topics.png", "pages": 10, "background": "lined",
-     "hasIndex": "true"}
+     "hasIndex": "true","hasCharacterSheet":"false"}
 ]
 
 # Add a cover image on the first page
@@ -114,19 +179,35 @@ def draw_hexagon(x_center, y_center, size):
         pdf.line(x1, y1, x2, y2)
 
 
+# def draw_hexagon_background(hex_size):
+#     """ Fills the entire page with a hexagon background """
+#     page_width = 210  # A4 page width in mm
+#     page_height = 297  # A4 page height in mm
+#     x_offset = 1.5 * hex_size  # Horizontal distance between hexagon centers
+#     y_offset = math.sqrt(3) * hex_size  # Vertical distance between hexagon centers
+#     #y = 40
+#     # Fill the entire page with hexagons
+#     for y in range(0 , int(page_height // y_offset) + 2):
+#
+#         for x in range(0, int(page_width // x_offset) + 2):
+#             # Offset every second row to create a hexagonal grid
+#             x_center = x * x_offset
+#             y_center = y * y_offset + (x % 2) * (y_offset / 2)
+#             draw_hexagon(x_center, y_center, hex_size)
 def draw_hexagon_background(hex_size):
     """ Fills the entire page with a hexagon background """
     page_width = 210  # A4 page width in mm
     page_height = 297  # A4 page height in mm
     x_offset = 1.5 * hex_size  # Horizontal distance between hexagon centers
     y_offset = math.sqrt(3) * hex_size  # Vertical distance between hexagon centers
+    start_y  = 20  + hex_size  # Start 2 cm from the top of the page (20 mm)
 
-    # Fill the entire page with hexagons
-    for y in range(0, int(page_height // y_offset) + 2):
+    # Fill the entire page with hexagons, starting from 2 cm below the top
+    for y in range(0, int((page_height - start_y) // y_offset) + 2):
         for x in range(0, int(page_width // x_offset) + 2):
             # Offset every second row to create a hexagonal grid
             x_center = x * x_offset
-            y_center = y * y_offset + (x % 2) * (y_offset / 2)
+            y_center = start_y + y * y_offset + (x % 2) * (y_offset / 2)
             draw_hexagon(x_center, y_center, hex_size)
 
 
@@ -193,6 +274,10 @@ for section in sections:
                 i = 0
 
     for p in range(section["pages"]):
+        if section["hasCharacterSheet"] == "true":
+            pdf.add_page()
+            add_toolbar()
+            pdf.add_character_sheet()
         pdf.add_page()
         add_toolbar()
         if section["hasIndex"] == "true":
